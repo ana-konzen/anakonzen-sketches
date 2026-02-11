@@ -1,0 +1,41 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+canvas {
+  display: block;
+}
+
+#slider-cont {
+  width: 400px;
+  flex-flow: column;
+  display: none;
+}
+
+#slider-cont div {
+  display: flex;
+  margin: 5px;
+  gap: 20px;
+  font-family: sans-serif;
+  font-size: 14px;
+}
+
+#slider-cont.show {
+  display: flex;
+}
+
+#menu-cont {
+  position: fixed;
+}
+
+button {
+  background: white;
+  border: 1px solid black;
+  cursor: pointer;
+}
+
+button.selected {
+  background: black;
+  color: white;
+}
