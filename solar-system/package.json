@@ -1,0 +1,16 @@
+{
+  "name": "st-barebones-threejs",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start": "parcel index.html --open",
+    "build": "parcel build index.html"
+  },
+  "dependencies": {
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "parcel": "^2.16.4"
+  },
+  "keywords": []
+}
