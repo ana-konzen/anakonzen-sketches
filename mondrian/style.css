@@ -3,8 +3,15 @@ body {
   margin: 0;
   padding: 0;
 }
+body {
+  background-color: #ebe8df;
+}
 canvas {
   display: block;
+  position: fixed;
+  top: 0;
+  left: 50vw;
+  transform: translateX(-50%);
 }
 
 #slider-cont {
@@ -27,15 +34,18 @@ canvas {
 
 #menu-cont {
   position: fixed;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
 }
 
 button {
-  background: white;
+  background-color: #ebe8df;
   border: 1px solid black;
   cursor: pointer;
 }
 
 button.selected {
   background: black;
-  color: white;
+  color: #ebe8df;
 }
