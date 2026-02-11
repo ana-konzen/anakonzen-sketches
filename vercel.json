@@ -2,7 +2,9 @@
   "buildCommand": "cd solar-system && npm install && npm run build",
   "outputDirectory": ".",
   "routes": [
+    { "src": "/solar-system/dist/(.*)", "dest": "/solar-system/dist/$1" },
     { "src": "/solar-system/(.*)", "dest": "/solar-system/dist/$1" },
+    { "src": "/solar-system", "dest": "/solar-system/dist/index.html" },
     { "src": "/", "dest": "/index.html" }
   ]
 }
