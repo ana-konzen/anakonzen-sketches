@@ -1,0 +1,7 @@
+body {
+  background-color: #1c1c1c;
+}
+canvas {
+  top: 50vh;
+  transform: translateY(-50%) translateX(-50%);
+}
