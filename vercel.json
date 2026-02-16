@@ -1,11 +1,10 @@
 {
-  "buildCommand": "cd solar-system && npm install && npm run build",
+  "buildCommand": "cd threejs && npm install && npm run build",
   "outputDirectory": ".",
   "trailingSlash": true,
   "rewrites": [
-    { "source": "/solar-system/dist/:path*", "destination": "/solar-system/dist/:path*" },
-    { "source": "/solar-system/src/:path*", "destination": "/solar-system/src/:path*" },
-    { "source": "/solar-system/:path*", "destination": "/solar-system/dist/:path*" },
-    { "source": "/solar-system/", "destination": "/solar-system/dist/index.html" }
+    { "source": "/threejs/dist/:path*", "destination": "/threejs/dist/:path*" },
+    { "source": "/threejs/:sketch/src/:path*", "destination": "/threejs/sketches/:sketch/:path*" },
+    { "source": "/threejs/:path*", "destination": "/threejs/dist/:path*" }
   ]
 }

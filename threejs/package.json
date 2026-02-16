@@ -1,0 +1,16 @@
+{
+  "name": "threejs-sketches",
+  "private": true,
+  "scripts": {
+    "start": "parcel sketches/*/index.html --open",
+    "build": "parcel build sketches/*/index.html --public-url /threejs/dist/"
+  },
+  "dependencies": {
+    "lil-gui": "^0.21.0",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "@parcel/transformer-glsl": "^2.16.4",
+    "parcel": "^2.16.4"
+  }
+}

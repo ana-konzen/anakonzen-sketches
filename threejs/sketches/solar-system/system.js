@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { loadViewer } from "../../shared/load-viewer.js";
+import { loadViewer } from "../../../shared/load-viewer.js";
 
 const animateSystem = true;
 const numSegments = 32;
@@ -188,4 +188,4 @@ function random(min = 0, max = 0) {
   return Math.random() * (max - min) + min;
 }
 
-loadViewer(["src/system.js"], "/solar-system");
+loadViewer(["system.js"]);
