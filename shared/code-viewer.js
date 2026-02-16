@@ -78,13 +78,16 @@
       return cache[filename];
     }
 
-    // Build DOM
+    // Build DOM (inline styles ensure hiding before CSS loads)
     const backdrop = document.createElement("div");
     backdrop.className = "cv-backdrop";
+    backdrop.style.opacity = "0";
+    backdrop.style.pointerEvents = "none";
     document.body.appendChild(backdrop);
 
     const panel = document.createElement("div");
     panel.className = "cv-panel";
+    panel.style.transform = "translateX(100%)";
     panel.innerHTML = `
       <div class="cv-header">
         <div class="cv-tabs"></div>
