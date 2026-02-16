@@ -78,16 +78,15 @@
       return cache[filename];
     }
 
-    // Build DOM (inline styles ensure hiding before CSS loads)
+    // Build DOM (hidden until first open to avoid flash before CSS loads)
     const backdrop = document.createElement("div");
     backdrop.className = "cv-backdrop";
-    backdrop.style.opacity = "0";
-    backdrop.style.pointerEvents = "none";
+    backdrop.hidden = true;
     document.body.appendChild(backdrop);
 
     const panel = document.createElement("div");
-    panel.className = "cv-panel";
-    panel.style.transform = "translateX(100%)";
+    panel.className = "cv-panel cv-ready";
+    panel.hidden = true;
     panel.innerHTML = `
       <div class="cv-header">
         <div class="cv-tabs"></div>
@@ -138,6 +137,10 @@
     document.body.appendChild(toggle);
 
     function open() {
+      panel.hidden = false;
+      backdrop.hidden = false;
+      // Force a reflow so the transition plays from the closed state
+      panel.offsetHeight;
       panel.classList.add("open");
       backdrop.classList.add("open");
       const firstTab = tabsEl.querySelector(".cv-tab");
@@ -166,14 +169,6 @@
         el.addEventListener(evt, (e) => e.stopPropagation(), { passive: false });
       }
     }
-
-    // Enable transitions after paint to avoid flash on load (double rAF ensures paint has occurred)
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        panel.classList.add("cv-ready");
-        backdrop.classList.add("cv-ready");
-      });
-    });
 
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") close();
