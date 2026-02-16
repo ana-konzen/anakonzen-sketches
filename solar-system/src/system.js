@@ -186,3 +186,9 @@ function addOrbitPath(pivot, radius) {
 function random(min = 0, max = 0) {
   return Math.random() * (max - min) + min;
 }
+
+// Load code viewer (injected at runtime to avoid Parcel processing)
+const cvScript = document.createElement("script");
+cvScript.src = "/shared/code-viewer.js";
+cvScript.onload = () => initCodeViewer(["src/system.js", "src/styles.css"], "/solar-system");
+document.body.appendChild(cvScript);

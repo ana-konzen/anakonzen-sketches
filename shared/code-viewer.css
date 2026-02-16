@@ -1,0 +1,133 @@
+.cv-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9998;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  border: 1px solid #555;
+  padding: 8px 14px;
+  font-family: monospace;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.cv-toggle:hover {
+  background: #2d2d2d;
+}
+
+.cv-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 9998;
+  opacity: 0;
+  pointer-events: none;
+  transition: none;
+}
+
+.cv-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.cv-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(600px, 85vw);
+  height: 100vh;
+  z-index: 9999;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  font-family: monospace;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: none;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.4);
+}
+
+.cv-panel.cv-ready {
+  transition: transform 0.25s ease;
+}
+
+.cv-panel.open {
+  transform: translateX(0);
+}
+
+.cv-backdrop.cv-ready {
+  transition: opacity 0.2s;
+}
+
+.cv-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  border-bottom: 1px solid #333;
+  flex-shrink: 0;
+}
+
+.cv-tabs {
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  padding: 8px 0;
+}
+
+.cv-tab {
+  background: none;
+  border: none;
+  color: #888;
+  font-family: monospace;
+  font-size: 12px;
+  padding: 6px 10px;
+  cursor: pointer;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.cv-tab:hover {
+  color: #d4d4d4;
+  background: #2d2d2d;
+}
+
+.cv-tab.active {
+  color: #fff;
+  background: #333;
+}
+
+.cv-close {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.cv-close:hover {
+  color: #fff;
+}
+
+.cv-code {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+  margin: 0;
+}
+
+.cv-code pre {
+  margin: 0;
+  white-space: pre;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.cv-code code {
+  font-family: "SF Mono", "Fira Code", "Fira Mono", Menlo, Consolas, monospace;
+}
