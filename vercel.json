@@ -5,6 +5,7 @@
   "rewrites": [
     { "source": "/threejs/dist/:path*", "destination": "/threejs/dist/:path*" },
     { "source": "/threejs/:sketch/src/:path*", "destination": "/threejs/sketches/:sketch/:path*" },
+    { "source": "/threejs/:sketch/", "destination": "/threejs/dist/:sketch/index.html" },
     { "source": "/threejs/:path*", "destination": "/threejs/dist/:path*" }
   ]
 }
