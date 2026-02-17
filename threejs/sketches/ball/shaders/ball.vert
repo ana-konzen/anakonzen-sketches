@@ -53,11 +53,6 @@ void main() {
     float noiseStrength = map(uAir, 0.0, 100.0, 0.1, 0.0); // more noise the less air there is in the ball
     modelPos.xyz += noise * normal * noiseStrength;
 
-        // modelPos.y += 0.5; // move the ball up to make room for the spike
-
-        // modelPos.y *= 0.2;
-        // modelPos.xz *= 1.8;
-
     gl_Position = projectionMatrix * viewMatrix * modelMatrix * modelPos;
 
     vUv = uv;
