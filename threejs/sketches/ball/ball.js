@@ -4,7 +4,7 @@ import GUI from "lil-gui";
 import { loadViewer } from "../../../shared/load-viewer.js";
 import vertShader from "./shaders/ball.vert";
 import fragShader from "./shaders/ball.frag";
-import terrainUrl from "url:./textures/terrain.jpg";
+import basketballTextureUrl from "url:./textures/basketball.jpg";
 
 // Create debug GUI.
 const gui = new GUI();
@@ -16,14 +16,14 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 
 // Create scene.
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x292f33);
+scene.background = new THREE.Color("#ebe8df");
 
 // Create camera.
 const camera = new THREE.PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,
 );
-camera.position.z = -2;
+camera.position.z = -10;
 scene.add(camera);
 
 // Add mouse controls for camera.
@@ -32,7 +32,7 @@ controls.enableDamping = true;
 
 // Load textures.
 const textureLoader = new THREE.TextureLoader();
-const earthTex = textureLoader.load(terrainUrl);
+const basketballTex = textureLoader.load(basketballTextureUrl);
 
 // Create groups and objects.
 const group = new THREE.Group();
@@ -43,27 +43,60 @@ const sphereMat = new THREE.RawShaderMaterial({
   vertexShader: vertShader,
   fragmentShader: fragShader,
   uniforms: {
-    uTerrainMap: { value: earthTex },
+    uTexMap: { value: basketballTex },
     uTime: { value: 0.0 },
-    uNoiseScale: { value: 2.0 },
-    uOffsetScale: { value: 0.1 },
+    uBounceSpeed: { value: 3.0 },
+    uBounceHeight: { value: 3.0 },
+    uStretch: { value: 0.5 },
+    uSquash: { value: 0.5 },
+    uAir: { value: 100.0 },
   },
 });
 const sphereMesh = new THREE.Mesh(sphereGeo, sphereMat);
+
+const paddleGeo = new THREE.CircleGeometry(2, 32);
+const paddleMat = new THREE.MeshBasicMaterial({
+  color: "#add945",
+  side: THREE.DoubleSide,
+});
+const paddleMesh = new THREE.Mesh(paddleGeo, paddleMat);
+paddleMesh.rotation.x = -Math.PI / 2;
+
+group.add(paddleMesh);
 group.add(sphereMesh);
 
+group.rotation.x = -Math.PI / 10;
+
 gui
-  .add(sphereMat.uniforms.uNoiseScale, "value")
+  .add(sphereMat.uniforms.uBounceSpeed, "value")
   .min(0)
-  .max(5)
-  .step(0.01)
-  .name("noise scale");
+  .max(10)
+  .step(0.5)
+  .name("bounce speed");
 gui
-  .add(sphereMat.uniforms.uOffsetScale, "value")
+  .add(sphereMat.uniforms.uBounceHeight, "value")
   .min(0)
-  .max(1)
-  .step(0.01)
-  .name("offset scale");
+  .max(10)
+  .step(0.5)
+  .name("bounce height");
+gui
+  .add(sphereMat.uniforms.uStretch, "value")
+  .min(0)
+  .max(2)
+  .step(0.1)
+  .name("stretch");
+gui
+  .add(sphereMat.uniforms.uSquash, "value")
+  .min(0)
+  .max(2)
+  .step(0.1)
+  .name("squash");
+gui
+  .add(sphereMat.uniforms.uAir, "value")
+  .min(0)
+  .max(100)
+  .step(5)
+  .name("air fill (%)");
 
 // Animation loop.
 const clock = new THREE.Clock();
@@ -71,8 +104,8 @@ const clock = new THREE.Clock();
 const tick = () => {
   sphereMat.uniforms.uTime.value = clock.getElapsedTime();
 
-  group.rotation.x += 0.01;
-  group.rotation.y += 0.02;
+  // group.rotation.x += 0.01;
+  // group.rotation.y += 0.02;
 
   controls.update();
 
