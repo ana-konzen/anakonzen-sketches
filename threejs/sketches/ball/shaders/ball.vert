@@ -37,7 +37,7 @@ void main() {
     float squashAmount = uSquash * contactMask * (1.0 - bounceFactor);             // only at contact
     float stretchAmount = uStretch * bounceCos * (1.0 - contactMask);   // only in the air
 
-    float scaleY = 1.0 - squashAmount + stretchAmount; // stretch more the more air there is in the ball, but never more than 1.5x
+    float scaleY = 1.0 - squashAmount + stretchAmount;
 
     float scaleXZ = inversesqrt(scaleY);
 
