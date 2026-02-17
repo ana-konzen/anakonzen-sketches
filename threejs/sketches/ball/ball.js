@@ -23,7 +23,7 @@ const camera = new THREE.PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,
 );
-camera.position.z = -10;
+camera.position.z = -5;
 scene.add(camera);
 
 // Add mouse controls for camera.
@@ -65,8 +65,9 @@ paddleMesh.rotation.x = -Math.PI / 2;
 group.add(paddleMesh);
 group.add(sphereMesh);
 
-group.rotation.x = -Math.PI / 10;
+group.rotation.x = -Math.PI / 90;
 group.rotation.y = Math.PI / 3;
+group.position.y = -2.5;
 
 gui
   .add(sphereMat.uniforms.uBounceSpeed, "value")
