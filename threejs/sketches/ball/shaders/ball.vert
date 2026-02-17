@@ -47,7 +47,7 @@ void main() {
 
     modelPos.y += 0.5 * scaleY; // keep the bottom of the ball at y=0
 
-    modelPos.y += bounce * uBounceHeight; // bounce more the more air there is in the ball
+    modelPos.y += bounce * uBounceHeight;
 
     float noise = simplexNoise(normal.xy * 0.75 + uTime * 0.1);
     float noiseStrength = map(uAir, 0.0, 100.0, 0.1, 0.0); // more noise the less air there is in the ball
