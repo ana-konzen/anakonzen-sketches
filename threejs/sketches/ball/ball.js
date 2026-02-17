@@ -66,6 +66,7 @@ group.add(paddleMesh);
 group.add(sphereMesh);
 
 group.rotation.x = -Math.PI / 10;
+group.rotation.y = Math.PI / 3;
 
 gui
   .add(sphereMat.uniforms.uBounceSpeed, "value")
