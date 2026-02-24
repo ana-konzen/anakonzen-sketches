@@ -5,6 +5,9 @@ import GUI from "lil-gui";
 
 import { lerp, map } from "../shared/js/util.js";
 
+import vertShader from "./shaders/brush.vert";
+import fragShader from "./shaders/brush.frag";
+
 const gui = new GUI();
 
 // Create renderer.
@@ -94,8 +97,7 @@ paintGeo.setAttribute(
 );
 
 // Create material.
-import vertShader from "./shaders/pull.vert";
-import fragShader from "./shaders/pull.frag";
+
 const paintMat = new THREE.ShaderMaterial({
   vertexShader: vertShader,
   fragmentShader: fragShader,
@@ -339,3 +341,6 @@ function drawPatch(x, y, w, h, color) {
     }
   }
 }
+
+import { loadViewer } from "../../../shared/load-viewer.js";
+loadViewer(["brush.js", "shaders/pull.vert", "shaders/pull.frag"]);
