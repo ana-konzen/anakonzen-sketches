@@ -343,4 +343,4 @@ function drawPatch(x, y, w, h, color) {
 }
 
 import { loadViewer } from "../../../shared/load-viewer.js";
-loadViewer(["brush.js", "shaders/pull.vert", "shaders/pull.frag"]);
+loadViewer(["brush.js", "shaders/brush.vert", "shaders/brush.frag"]);
