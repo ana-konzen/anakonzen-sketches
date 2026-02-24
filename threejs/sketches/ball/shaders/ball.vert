@@ -1,6 +1,4 @@
-float simplexNoise(vec2 v);
-float map(float value, float inMin, float inMax, float outMin, float outMax);
-#pragma glslify: simplexNoise = require('../../shared/glsl/noise.glsl')
+#pragma glslify: simplexNoise = require('../../shared/glsl/noise/simplex.glsl')
 #pragma glslify: map = require('../../shared/glsl/util.glsl')
 
 uniform mat4 projectionMatrix;

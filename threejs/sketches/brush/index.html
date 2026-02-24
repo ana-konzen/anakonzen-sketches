@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+  <head>
+    <title>ball</title>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+
+  <body>
+    <div id="mainCont">
+      <div id="statusCont">Brush mode is <span id="brushStatus">off</span></div>
+      <div id="instructions">
+        (W) toggle brush mode <br />
+        (C) clean brush <br />
+        ([]) adjust brush size <br />
+      </div>
+      <div>
+        debug<br />
+        base color: <span id="base-color">0.0</span>
+        <br />
+        selected color: <span id="selected-color">0.0</span>
+        <br />
+        mix color: <span id="mix-color">0.0</span>
+      </div>
+    </div>
+    <canvas id="canvas"></canvas>
+    <script type="module" src="./brush.js"></script>
+  </body>
+</html>
