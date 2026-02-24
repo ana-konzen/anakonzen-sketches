@@ -28,12 +28,12 @@ let selectedColor = { ...colorOption };
 
 const brushSettings = {
   radius: 0.1,
-  dryingSpeed: 0.1,
+  dryingSpeed: 2,
 };
 
 gui
   .addColor(colorOption, "hex")
-  .name("Color Option")
+  .name("Color")
   .onChange((value) => {
     colorOption.threejs.set(value);
     colorOption.spectral = new spectral.Color(value);
@@ -43,7 +43,7 @@ gui
 const radiusController = gui
   .add(brushSettings, "radius", 0.01, 0.5)
   .name("Brush Size");
-gui.add(brushSettings, "dryingSpeed", 0.001, 0.2).name("Drying Speed");
+gui.add(brushSettings, "dryingSpeed", 0.5, 10).name("Drying Speed");
 
 // Create camera.
 const camera = new THREE.PerspectiveCamera(
@@ -66,7 +66,7 @@ const canvasMesh = new THREE.Mesh(canvasGeo, canvasMat);
 canvasMesh.position.z = -0.01;
 scene.add(canvasMesh);
 
-const numVerts = 280;
+const numVerts = 250;
 // Create geometry.
 const tempGeo = new THREE.PlaneGeometry(2.0, 2.0, numVerts, numVerts);
 const paintGeo = tempGeo;
@@ -116,7 +116,7 @@ const paintMat = new THREE.ShaderMaterial({
 const paintMesh = new THREE.Mesh(paintGeo, paintMat);
 scene.add(paintMesh);
 
-drawPatch(8, 8, 40, 80, selectedColor.threejs);
+// drawPatch(8, 8, 40, 80, selectedColor.threejs);
 
 // Animation loop.
 const clock = new THREE.Clock();
@@ -125,11 +125,15 @@ const tick = () => {
   for (let i = 0; i < paintGeo.attributes.dryness.array.length; i++) {
     paintGeo.attributes.dryness.array[i] = Math.min(
       1.0,
-      1 -
-        Math.exp(-brushSettings.dryingSpeed * dt) *
-          paintGeo.attributes.dryness.array[i],
+      (1 +
+        (brushSettings.dryingSpeed / 1e3) *
+          Math.exp(-brushSettings.dryingSpeed * (dt / 1e3))) *
+        paintGeo.attributes.dryness.array[i],
     );
   }
+
+  // find one attribute that's painted to debug dryness
+
   paintGeo.attributes.extent.needsUpdate = true;
   paintGeo.attributes.dryness.needsUpdate = true;
   paintGeo.attributes.brushColor.needsUpdate = true;
@@ -282,7 +286,7 @@ function blendColors(i, distAmt, baseExtent) {
   const extentRatio = baseExtent > 0 ? selectedExtent / baseExtent : 10;
   const extentMultiplier = Math.atan(Math.tan(0.5) * extentRatio);
 
-  const blendAmt = wetness * 0.7 * distAmt;
+  // const blendAmt = wetness * 0.7 * distAmt;
   // const effectiveBlend = 0.1 * lerp(blendAmt, 1.0, extent);
 
   const spectralBase = new spectral.Color(baseColor.getStyle());
@@ -296,12 +300,6 @@ function blendColors(i, distAmt, baseExtent) {
       ],
     )
     .toString();
-
-  document.querySelector("#base-color").textContent = spectralBase.toString();
-  document.querySelector("#selected-color").textContent =
-    selectedColor.spectral.toString();
-
-  document.querySelector("#mix-color").textContent = spectralMix;
 
   const newColor = new THREE.Color(spectralMix);
   selectedColor = {
