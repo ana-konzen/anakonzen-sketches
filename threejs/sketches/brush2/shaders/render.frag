@@ -5,11 +5,13 @@ precision mediump float;
 varying vec2 vUv;
 varying float vWetness;
 varying float vHeight;
-varying float vExtent;
+varying float vResidue;
 
 varying vec3 vViewPosition;
 varying vec3 vViewNormal;
 varying vec3 vViewLightDir;
+
+uniform sampler2D uTexColors;
 
 void main() {
     vec3 lightDir = normalize(vViewLightDir);
@@ -30,20 +32,12 @@ void main() {
     float specular = pow(max(dot(normal, h), 0.0), glossiness) * specStrength;
 
     vec3 blue = vec3(0.6, 0.6, 1.0);
-    vec3 brushColor = blue;
+    vec3 brushColor = texture2D(uTexColors, vUv).rgb;
 
-    vec3 baseColor = vec3(1.0, 0.9, 0.8);
+    brushColor *= mix(1.0, lambert, vWetness);
+    float paintPresence = smoothstep(0.0, 0.05, max(vHeight, vResidue));
+    float glossFactor = mix(0.1, 1.0, vWetness) * paintPresence;
+    brushColor += specular * glossFactor;
 
-    float h01 = 1.0 - exp(-vHeight * 2.0); // tune 0.3..2
-
-    float opacity = clamp(vExtent * (vWetness + 0.8), 0.0, 1.0);
-
-    vec3 color = mix(baseColor, brushColor, h01);
-
-    color *= mix(1.0, lambert, vWetness);
-    color += specular * vWetness;
-
-    // color = vec3(vHeight);
-
-    gl_FragColor = vec4(color, 1.0);
+    gl_FragColor = vec4(brushColor, 1.0);
 }

@@ -25,11 +25,11 @@ const blueColor = new THREE.Color("#7dd1e8");
 const canvasColor = new THREE.Color("#faf8f2");
 let selectedColor = redColor;
 
-const texExtents = getDataTexture();
-const bufferExtents = getRenderBuffers();
+const texBrushX = getDataTexture();
+const bufferBrushX = getRenderBuffers();
 
-const texExtentsY = getDataTexture();
-const bufferExtentsY = getRenderBuffers();
+const texBrushY = getDataTexture();
+const bufferBrushY = getRenderBuffers();
 
 const texColors = getDataTexture([
   ...canvasColor.clone().convertLinearToSRGB().toArray(),
@@ -43,6 +43,7 @@ let dstIdx = 1;
 let firstRun = true;
 let mouseDown = false;
 let lastMousePos = new THREE.Vector2(0, 0);
+let smoothedMouseVel = new THREE.Vector2(0, 0);
 
 // Create offscreen draw rectangle.
 const planeGeo = new THREE.PlaneGeometry(1, 1, 1, 1);
@@ -54,63 +55,49 @@ const updateColorMat = new THREE.RawShaderMaterial({
   vertexShader: colorVert,
   fragmentShader: colorFrag,
   uniforms: {
-    uTexExtents: { value: texExtents },
+    uTexBrushData: { value: texBrushX },
     uTexColors: { value: texColors },
     uTargetColor: {
       value: selectedColor.clone().convertLinearToSRGB().toArray(),
     },
     uMousePos: { value: [0.0, 0.0] },
     uMouseDown: { value: false },
+    uBrushRadius: { value: 0.1 },
+    uDeltaTime: { value: 1 / 60.0 },
+    uBlendStrength: { value: 0.05 },
+    uResolution: { value: [size, size] },
+    uMouseVel: { value: [0.0, 0.0] },
+    uSmearStrength: { value: 1.0 },
   },
 });
 const updateColorMesh = new THREE.Mesh(planeGeo, updateColorMat);
 updateColorScene.add(updateColorMesh);
 
-// Create offscreen scene for updating extents.
-const updateExtentScene = new THREE.Scene();
+import brushVertX from "./shaders/update.vert";
+import brushFragX from "./shaders/updateBrush.frag";
+const updateBrushMatX = getUpdateBrushMat(brushVertX, brushFragX, 0);
 
-// Create material and mesh for updating extents.
-import extentVert from "./shaders/update.vert";
-import extentFrag from "./shaders/updateBrush.frag";
-const updateExtentMat = new THREE.RawShaderMaterial({
-  vertexShader: extentVert,
-  fragmentShader: extentFrag,
-  uniforms: {
-    uTexExtents: { value: texExtents },
-    uDeltaTime: { value: 1 / 60.0 },
-    uMousePos: { value: [0.0, 0.0] },
-    uMouseVel: { value: [0.0, 0.0] },
-    uMouseDown: { value: false },
-    uResolution: { value: [size, size] },
-    uAxis: { value: 0 },
+const updateBrushMeshX = new THREE.Mesh(planeGeo, updateBrushMatX);
+const updateBrushSceneX = new THREE.Scene().add(updateBrushMeshX);
+
+import brushVertY from "./shaders/update.vert";
+import brushFragY from "./shaders/updateBrush.frag";
+const updateBrushMatY = getUpdateBrushMat(brushVertY, brushFragY, 1);
+const updateBrushMeshY = new THREE.Mesh(planeGeo, updateBrushMatY);
+const updateBrushSceneY = new THREE.Scene().add(updateBrushMeshY);
+
+const updateBufferAssets = [
+  {
+    scene: updateBrushSceneX,
+    mat: updateBrushMatX,
   },
-});
-const updateExtentMesh = new THREE.Mesh(planeGeo, updateExtentMat);
-updateExtentScene.add(updateExtentMesh);
-
-// Create offscreen scene for updating extents.
-const updateExtentSceneY = new THREE.Scene();
-
-// Create material and mesh for updating extents.
-import extentVertY from "./shaders/update.vert";
-import extentFragY from "./shaders/updateBrush.frag";
-const updateExtentMatY = new THREE.RawShaderMaterial({
-  vertexShader: extentVertY,
-  fragmentShader: extentFragY,
-  uniforms: {
-    uTexExtents: { value: texExtents },
-    uDeltaTime: { value: 1 / 60.0 },
-    uMousePos: { value: [0.0, 0.0] },
-    uMouseVel: { value: [0.0, 0.0] },
-    uMouseDown: { value: false },
-    uResolution: { value: [size, size] },
-    uAxis: { value: 1 },
+  {
+    scene: updateBrushSceneY,
+    mat: updateBrushMatY,
   },
-});
-const updateExtentMeshY = new THREE.Mesh(planeGeo, updateExtentMatY);
-updateExtentSceneY.add(updateExtentMeshY);
+];
 
-// Create points geometry.
+// Create paint geometry.
 const uvs = [];
 for (let y = 0; y < size; y++) {
   for (let x = 0; x < size; x++) {
@@ -124,7 +111,7 @@ paintGeo.setAttribute(
   new THREE.BufferAttribute(new Float32Array(uvs), 2),
 );
 
-// Create points material.
+// Create paint material.
 import renderVert from "./shaders/render.vert";
 import renderFrag from "./shaders/render.frag";
 
@@ -132,11 +119,8 @@ const paintMat = new THREE.ShaderMaterial({
   vertexShader: renderVert,
   fragmentShader: renderFrag,
   uniforms: {
-    uTexExtents: { value: texExtents },
-    uTexExtentsY: { value: texExtentsY },
-
+    uTexBrushData: { value: texBrushX },
     uTexColors: { value: texColors },
-    uColorBoost: { value: 1.0 },
     uResolution: { value: [size, size] },
   },
   extensions: {
@@ -150,6 +134,63 @@ const paintMat = new THREE.ShaderMaterial({
 const paintMesh = new THREE.Mesh(paintGeo, paintMat);
 scene.add(paintMesh);
 
+console.log(selectedColor);
+
+const colorOption = {
+  value: selectedColor.getStyle(),
+};
+
+gui
+  .addColor(colorOption, "value")
+  .name("color")
+  .onChange((value) => {
+    updateColorMat.uniforms.uTargetColor.value = new THREE.Color(value)
+      .clone()
+      .convertLinearToSRGB()
+      .toArray();
+  });
+
+const radiusController = gui
+  .add(updateBrushMatX.uniforms.uBrushRadius, "value", 0.01, 0.3)
+  .name("brush radius")
+  .onChange((value) => {
+    updateBrushMatY.uniforms.uBrushRadius.value = value;
+    updateColorMat.uniforms.uBrushRadius.value = value;
+  });
+
+gui
+  .add(updateBrushMatX.uniforms.uSmearStrength, "value", 0.0, 2.0)
+  .name("smear strength")
+  .onChange((value) => {
+    updateBrushMatY.uniforms.uSmearStrength.value = value;
+    updateColorMat.uniforms.uSmearStrength.value = value;
+  });
+
+gui
+  .add(updateBrushMatX.uniforms.uDecaySpeed, "value", 0.0001, 0.2)
+  .name("decay speed")
+  .onChange((value) => {
+    updateBrushMatY.uniforms.uDecaySpeed.value = value;
+  });
+
+gui
+  .add(updateBrushMatX.uniforms.uLoadSpeed, "value", 0.0, 5.0)
+  .name("load speed")
+  .onChange((value) => {
+    updateBrushMatY.uniforms.uLoadSpeed.value = value;
+  });
+
+gui
+  .add(updateBrushMatX.uniforms.uDryingSpeed, "value", 0.0001, 0.1)
+  .name("drying speed")
+  .onChange((value) => {
+    updateBrushMatY.uniforms.uDryingSpeed.value = value;
+  });
+
+gui
+  .add(updateColorMat.uniforms.uBlendStrength, "value", 0.01, 0.2)
+  .name("blend strength");
+
 const canvasGeo = new THREE.PlaneGeometry(2, 2, 10, 10);
 const canvasMat = new THREE.MeshBasicMaterial({
   color: canvasColor,
@@ -157,12 +198,12 @@ const canvasMat = new THREE.MeshBasicMaterial({
 });
 const canvasMesh = new THREE.Mesh(canvasGeo, canvasMat);
 canvasMesh.position.z = -0.01;
-// scene.add(canvasMesh);
+scene.add(canvasMesh);
 
 // Debug offscreen texture.
 const debugGeo = new THREE.PlaneGeometry(2, 2);
 const debugMat = new THREE.MeshBasicMaterial({
-  map: bufferExtents[dstIdx].texture,
+  map: bufferBrushX[dstIdx].texture,
 });
 const debugMesh = new THREE.Mesh(debugGeo, debugMat);
 // scene.add(debugMesh);
@@ -173,34 +214,31 @@ const tick = () => {
   stats.begin();
   const dt = clock.getDelta();
 
-  updateExtentMat.uniforms.uDeltaTime.value = dt;
-  updateExtentMatY.uniforms.uDeltaTime.value = dt;
+  for (const asset of updateBufferAssets) {
+    asset.mat.uniforms.uDeltaTime.value = dt;
+  }
+  updateColorMat.uniforms.uDeltaTime.value = dt;
 
   if (firstRun) {
-    updateExtents(texExtentsY, bufferExtents[dstIdx]);
-    updateExtentsY(bufferExtents[dstIdx], bufferExtentsY[dstIdx]);
+    updateBrushData(0, texBrushY, bufferBrushX[dstIdx]);
+    updateBrushData(1, bufferBrushX[dstIdx], bufferBrushY[dstIdx]);
 
-    updateColors(
-      bufferExtents[dstIdx].texture,
-      texColors,
-      bufferColors[dstIdx],
-    );
+    updateColors(bufferBrushX[dstIdx].texture, texColors, bufferColors[dstIdx]);
     firstRun = false;
   } else {
-    updateExtents(bufferExtentsY[srcIdx].texture, bufferExtents[dstIdx]);
-    updateExtentsY(bufferExtents[dstIdx].texture, bufferExtentsY[dstIdx]);
+    updateBrushData(0, bufferBrushY[srcIdx].texture, bufferBrushX[dstIdx]);
+    updateBrushData(1, bufferBrushX[dstIdx].texture, bufferBrushY[dstIdx]);
 
     updateColors(
-      bufferExtents[dstIdx].texture,
+      bufferBrushX[dstIdx].texture,
       bufferColors[srcIdx].texture,
       bufferColors[dstIdx],
     );
   }
 
-  // Set target texture as input for points.
+  // Set target texture as input for paint mat.
   renderer.setRenderTarget(null);
-  paintMat.uniforms.uTexExtents.value = bufferExtentsY[dstIdx].texture;
-
+  paintMat.uniforms.uTexBrushData.value = bufferBrushY[dstIdx].texture;
   paintMat.uniforms.uTexColors.value = bufferColors[dstIdx].texture;
 
   updateScene();
@@ -221,12 +259,47 @@ window.addEventListener("resize", () => {
   resizeScene(w, h);
 });
 
+const brushStatus = document.getElementById("brushStatus");
+
+let allowDrawing = true;
+
+updateBrushStatus();
+
+function updateBrushStatus() {
+  controls.enableRotate = !allowDrawing;
+  brushStatus.textContent = allowDrawing ? "on" : "off";
+}
+
+window.addEventListener("keydown", (event) => {
+  if (event.key.toLowerCase() === "w") {
+    allowDrawing = !allowDrawing;
+    updateBrushStatus();
+  }
+
+  if (event.key === "[") {
+    radiusController.setValue(
+      Math.max(
+        radiusController._min,
+        updateBrushMatX.uniforms.uBrushRadius.value - 0.01,
+      ),
+    );
+  }
+  if (event.key === "]") {
+    radiusController.setValue(
+      Math.min(
+        radiusController._max,
+        updateBrushMatX.uniforms.uBrushRadius.value + 0.01,
+      ),
+    );
+  }
+});
+
 // Mouse raycaster.
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
 window.addEventListener("mousemove", (event) => {
-  // if (!mouseDown) return;
+  if (!allowDrawing) return;
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
   // mouse.y = (event.clientY / window.innerHeight) * 2 - 1;
@@ -238,25 +311,30 @@ window.addEventListener("mousemove", (event) => {
 
     if (nearestHit.face != null) {
       if (mouseDown) {
-        updateExtentMat.uniforms.uMouseDown.value = true;
-        updateExtentMatY.uniforms.uMouseDown.value = true;
+        for (const asset of updateBufferAssets) {
+          asset.mat.uniforms.uMouseDown.value = true;
+        }
         updateColorMat.uniforms.uMouseDown.value = true;
       }
 
-      updateExtentMat.uniforms.uMousePos.value = nearestHit.uv;
-      updateExtentMatY.uniforms.uMousePos.value = nearestHit.uv;
+      for (const asset of updateBufferAssets) {
+        asset.mat.uniforms.uMousePos.value = nearestHit.uv;
+      }
 
       updateColorMat.uniforms.uMousePos.value = nearestHit.uv;
 
-      // Calculate mouse velocity.
-      const mouseVel = new THREE.Vector2().subVectors(
+      // Calculate smoothed mouse velocity.
+      const rawVel = new THREE.Vector2().subVectors(
         nearestHit.uv,
         lastMousePos,
       );
-      updateExtentMat.uniforms.uMouseVel.value = mouseVel.toArray();
-      updateExtentMatY.uniforms.uMouseVel.value = mouseVel.toArray();
+      smoothedMouseVel.lerp(rawVel, 0.3);
 
-      // updateColorMat.uniforms.uMouseVel.value = mouseVel.toArray();
+      for (const asset of updateBufferAssets) {
+        asset.mat.uniforms.uMouseVel.value = smoothedMouseVel.toArray();
+      }
+      updateColorMat.uniforms.uMouseVel.value = smoothedMouseVel.toArray();
+
       lastMousePos.copy(nearestHit.uv);
     }
   }
@@ -264,42 +342,47 @@ window.addEventListener("mousemove", (event) => {
 
 window.addEventListener("mousedown", () => {
   mouseDown = true;
-  controls.enableRotate = false;
 });
 
 window.addEventListener("mouseup", () => {
   mouseDown = false;
-  controls.enableRotate = true;
-  updateExtentMat.uniforms.uMouseDown.value = false;
-  updateExtentMatY.uniforms.uMouseDown.value = false;
+  for (const asset of updateBufferAssets) {
+    asset.mat.uniforms.uMouseDown.value = false;
+  }
   updateColorMat.uniforms.uMouseDown.value = false;
 });
 
-window.addEventListener("keydown", (event) => {
-  if (event.key.toLowerCase() === "c") {
-    selectedColor = selectedColor === redColor ? blueColor : redColor;
-    updateColorMat.uniforms.uTargetColor.value = selectedColor
-      .clone()
-      .convertLinearToSRGB()
-      .toArray();
-  }
-});
-
-function updateExtents(srcExtentTex, dstExtentBuffer) {
-  renderer.setRenderTarget(dstExtentBuffer);
-  updateExtentMat.uniforms.uTexExtents.value = srcExtentTex;
-  renderer.render(updateExtentScene, camera);
+function getUpdateBrushMat(vertexShader, fragmentShader, axis) {
+  return new THREE.RawShaderMaterial({
+    vertexShader,
+    fragmentShader,
+    uniforms: {
+      uTexBrushData: { value: texBrushX },
+      uDeltaTime: { value: 1 / 60.0 },
+      uMousePos: { value: [0.0, 0.0] },
+      uMouseVel: { value: [0.0, 0.0] },
+      uMouseDown: { value: false },
+      uResolution: { value: [size, size] },
+      uAxis: { value: axis },
+      uBrushRadius: { value: 0.1 },
+      uSmearStrength: { value: 1.0 },
+      uDecaySpeed: { value: 0.01 },
+      uLoadSpeed: { value: 2.0 },
+      uDryingSpeed: { value: 0.01 },
+    },
+  });
 }
 
-function updateExtentsY(srcExtentTex, dstExtentBuffer) {
-  renderer.setRenderTarget(dstExtentBuffer);
-  updateExtentMatY.uniforms.uTexExtents.value = srcExtentTex;
-  renderer.render(updateExtentSceneY, camera);
+function updateBrushData(axis, srcBrushTex, dstBrushBuffer) {
+  const asset = updateBufferAssets[axis];
+  renderer.setRenderTarget(dstBrushBuffer);
+  asset.mat.uniforms.uTexBrushData.value = srcBrushTex;
+  renderer.render(asset.scene, camera);
 }
 
-function updateColors(srcExtentTex, srcColorTex, dstColorBuffer) {
+function updateColors(srcBrushTex, srcColorTex, dstColorBuffer) {
   renderer.setRenderTarget(dstColorBuffer);
-  updateColorMat.uniforms.uTexExtents.value = srcExtentTex;
+  updateColorMat.uniforms.uTexBrushData.value = srcBrushTex;
   updateColorMat.uniforms.uTexColors.value = srcColorTex;
   renderer.render(updateColorScene, camera);
 }

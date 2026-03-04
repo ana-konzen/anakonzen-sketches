@@ -1,31 +1,32 @@
 #pragma glslify: fbm = require('../../shared/glsl/noise/fbm.glsl')
 
-uniform sampler2D uTexExtents;
+uniform sampler2D uTexBrushData;
 
 uniform vec2 uResolution;
 
-varying float vExtent;
 varying vec3 vViewPosition;
 varying vec3 vViewNormal;
 varying vec3 vViewLightDir;
 varying vec2 vUv;
 varying float vWetness;
 varying float vHeight;
+varying float vResidue;
 
-float heightAt(vec2 uv, float height, float wetness) {
-    float n = fbm(uv * 1.0 + vec2(height * 0.2));
+float heightAt(vec2 uv, float height, float wetness, float residue) {
+    float n = fbm(uv * 2.0 + vec2(tanh(height * 0.2)));
     n = clamp(n, 0.0, 1.0);
     n = pow(n, 0.8);
     wetness = max(wetness, 0.2);
-    float amp = 0.8 * height * wetness;
-
-    return amp * n;
+    float smoothAmp = 0.8 * height * wetness;
+    float textureAmp = residue * 0.3;
+    float canvasGrain = fbm(uv * 8.0) * 0.05;
+    return (smoothAmp + textureAmp) * n + canvasGrain;
 }
 
-vec3 getNormal(float h, float extent, float wetness) {
+vec3 getNormal(float h, float extent, float wetness, float residue) {
     float e = 0.002;
-    float hx = heightAt(uv + vec2(e, 0.0), extent, wetness);
-    float hy = heightAt(uv + vec2(0.0, e), extent, wetness);
+    float hx = heightAt(uv + vec2(e, 0.0), extent, wetness, residue);
+    float hy = heightAt(uv + vec2(0.0, e), extent, wetness, residue);
 
     float normalScale = 1.0;
 
@@ -36,12 +37,12 @@ vec3 getNormal(float h, float extent, float wetness) {
 }
 void main() {
     vec4 modelPos = vec4(position, 1.0);
-    vec4 brushData = texture2D(uTexExtents, uv);
-    float extent = brushData.x;
+    vec4 brushData = texture2D(uTexBrushData, uv);
+    float residue = brushData.x;
     float height = brushData.z;
     float wetness = brushData.w;
 
-    float h = heightAt(uv, height, wetness);
+    float h = heightAt(uv, height, wetness, residue);
     // modelPos.z += h * 0.5;
 
     vec4 worldPos = modelMatrix * modelPos;
@@ -49,16 +50,16 @@ void main() {
 
     gl_Position = projectionMatrix * viewPos;
 
-    vec3 norm = getNormal(h, height, wetness);
+    vec3 norm = getNormal(h, height, wetness, residue);
     vViewNormal = normalize(normalMatrix * norm);
 
     vec3 worldLightDir = normalize(vec3(0.0, 1.0, 1.0));
     vViewLightDir = normalize((viewMatrix * vec4(worldLightDir, 0.0)).xyz);
 
     vViewPosition = viewPos.xyz;
-    vExtent = extent;
     vUv = uv;
     vWetness = wetness;
     vHeight = height;
+    vResidue = residue;
 
 }
