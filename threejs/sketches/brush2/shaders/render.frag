@@ -11,6 +11,8 @@ varying vec3 vViewPosition;
 varying vec3 vViewNormal;
 varying vec3 vViewLightDir;
 
+varying float vDilution;
+
 uniform sampler2D uTexColors;
 
 void main() {
@@ -39,5 +41,8 @@ void main() {
     float glossFactor = mix(0.1, 1.0, vWetness) * paintPresence;
     brushColor += specular * glossFactor;
 
-    gl_FragColor = vec4(brushColor, 1.0);
+    float opacityThreshold = mix(0.2, 0.02, vDilution);
+    float opacity = smoothstep(0.0, opacityThreshold, vResidue);
+
+    gl_FragColor = vec4(brushColor, opacity);
 }

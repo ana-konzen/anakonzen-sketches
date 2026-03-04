@@ -11,6 +11,7 @@ varying vec2 vUv;
 varying float vWetness;
 varying float vHeight;
 varying float vResidue;
+varying float vDilution;
 
 float heightAt(vec2 uv, float height, float wetness, float residue) {
     float n = fbm(uv * 2.0 + vec2(tanh(height * 0.2)));
@@ -61,5 +62,6 @@ void main() {
     vWetness = wetness;
     vHeight = height;
     vResidue = residue;
+    vDilution = brushData.y;
 
 }

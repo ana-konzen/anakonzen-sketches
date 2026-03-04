@@ -17,6 +17,7 @@ uniform float uSmearStrength;
 uniform float uDecaySpeed;
 uniform float uLoadSpeed;
 uniform float uDryingSpeed;
+uniform float uDilution;
 
 uniform int uAxis;
 
@@ -62,6 +63,7 @@ float gaussianBlur(float value, float sigma, int axis, bool blurHeight) {
 void main() {
     vec4 brushData = texture2D(uTexBrushData, vUv);
     float residue = brushData.x;
+    float storedDilution = brushData.y;
     float wetness = brushData.w;
     float height = brushData.z;
     float radius = uBrushRadius;
@@ -104,7 +106,10 @@ void main() {
     if(uAxis == 1) {
         residue += stamp * 0.5 * uDeltaTime;
         residue = min(residue, 1.5);
+        if(stamp > 0.01) {
+            storedDilution = mix(storedDilution, uDilution, clamp(stamp * 2.0, 0.0, 1.0));
+        }
     }
 
-    gl_FragColor = vec4(residue, 0.0, blur_height, new_wetness);
+    gl_FragColor = vec4(residue, storedDilution, blur_height, new_wetness);
 }

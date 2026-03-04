@@ -191,6 +191,13 @@ gui
   .add(updateColorMat.uniforms.uBlendStrength, "value", 0.01, 0.2)
   .name("blend strength");
 
+gui
+  .add(updateBrushMatX.uniforms.uDilution, "value", 0.0, 1.0)
+  .name("dilution")
+  .onChange((value) => {
+    updateBrushMatY.uniforms.uDilution.value = value;
+  });
+
 const canvasGeo = new THREE.PlaneGeometry(2, 2, 10, 10);
 const canvasMat = new THREE.MeshBasicMaterial({
   color: canvasColor,
@@ -223,14 +230,14 @@ const tick = () => {
     updateBrushData(0, texBrushY, bufferBrushX[dstIdx]);
     updateBrushData(1, bufferBrushX[dstIdx], bufferBrushY[dstIdx]);
 
-    updateColors(bufferBrushX[dstIdx].texture, texColors, bufferColors[dstIdx]);
+    updateColors(bufferBrushY[dstIdx].texture, texColors, bufferColors[dstIdx]);
     firstRun = false;
   } else {
     updateBrushData(0, bufferBrushY[srcIdx].texture, bufferBrushX[dstIdx]);
     updateBrushData(1, bufferBrushX[dstIdx].texture, bufferBrushY[dstIdx]);
 
     updateColors(
-      bufferBrushX[dstIdx].texture,
+      bufferBrushY[dstIdx].texture,
       bufferColors[srcIdx].texture,
       bufferColors[dstIdx],
     );
@@ -369,6 +376,7 @@ function getUpdateBrushMat(vertexShader, fragmentShader, axis) {
       uDecaySpeed: { value: 0.01 },
       uLoadSpeed: { value: 2.0 },
       uDryingSpeed: { value: 0.01 },
+      uDilution: { value: 0.2 },
     },
   });
 }
