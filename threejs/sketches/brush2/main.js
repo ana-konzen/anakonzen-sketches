@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import GUI from "lil-gui";
 import Stats from "stats.js";
-const stats = new Stats();
-stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-document.body.appendChild(stats.dom);
+// const stats = new Stats();
+// stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+// document.body.appendChild(stats.dom);
 
 import { lerp, map } from "../shared/js/util.js";
 import { getDataTexture, getRenderBuffers } from "./buffers.js";
@@ -218,7 +218,7 @@ const debugMesh = new THREE.Mesh(debugGeo, debugMat);
 // Animation loop.
 const clock = new THREE.Clock();
 const tick = () => {
-  stats.begin();
+  // stats.begin();
   const dt = clock.getDelta();
 
   for (const asset of updateBufferAssets) {
@@ -253,7 +253,7 @@ const tick = () => {
   // Swap source and destination.
   srcIdx = 1 - srcIdx;
   dstIdx = 1 - dstIdx;
-  stats.end();
+  // stats.end();
 
   requestAnimationFrame(tick);
 };
@@ -394,3 +394,15 @@ function updateColors(srcBrushTex, srcColorTex, dstColorBuffer) {
   updateColorMat.uniforms.uTexColors.value = srcColorTex;
   renderer.render(updateColorScene, camera);
 }
+
+import { loadViewer } from "../../../shared/load-viewer.js";
+loadViewer([
+  "main.js",
+  "buffers.js",
+  "renderer.js",
+  "shaders/render.vert",
+  "shaders/render.frag",
+  "shaders/update.vert",
+  "shaders/updateColor.frag",
+  "shaders/updateBrush.frag",
+]);
