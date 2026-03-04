@@ -14,12 +14,12 @@ varying float vResidue;
 varying float vDilution;
 
 float heightAt(vec2 uv, float height, float wetness, float residue) {
-    float n = fbm(uv * 1.0 + vec2(clamp(height, 0.0, 1.0) * 0.3));
+    float n = fbm(uv * 1.0 + vec2(clamp(height, 0.0, 1.0) * 0.5));
     // n = clamp(n, 0.0, 1.0);
     n = pow(n, 1.3);
     wetness = max(wetness, 0.2);
     float smoothAmp = 0.8 * height * wetness;
-    float textureAmp = residue * 0.5;
+    float textureAmp = residue * 0.8;
     float canvasGrain = fbm(uv * 8.0) * 0.05;
     return (smoothAmp + textureAmp) * n;
 }
