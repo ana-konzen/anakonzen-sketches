@@ -21,7 +21,7 @@ float heightAt(vec2 uv, float height, float wetness, float residue) {
     float smoothAmp = 0.8 * height * wetness;
     float textureAmp = residue * 0.3;
     float canvasGrain = fbm(uv * 8.0) * 0.05;
-    return (smoothAmp + textureAmp) * n + canvasGrain;
+    return (smoothAmp + textureAmp) * n;
 }
 
 vec3 getNormal(float h, float extent, float wetness, float residue) {

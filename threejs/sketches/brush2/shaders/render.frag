@@ -28,17 +28,16 @@ void main() {
     vec3 h = normalize(lightDir + viewDir);
     float lambert = ambient + (1.0 - ambient) * diffuse;
 
-    float glossiness = 220.0;
-    float specStrength = 0.7;
+    float glossiness = 80.0;
+    float specStrength = 0.5;
 
     float specular = pow(max(dot(normal, h), 0.0), glossiness) * specStrength;
 
-    vec3 blue = vec3(0.6, 0.6, 1.0);
     vec3 brushColor = texture2D(uTexColors, vUv).rgb;
 
     brushColor *= mix(1.0, lambert, vWetness);
     float paintPresence = smoothstep(0.0, 0.05, max(vHeight, vResidue));
-    float glossFactor = mix(0.1, 1.0, vWetness) * paintPresence;
+    float glossFactor = mix(0.0, 1.0, vWetness) * paintPresence;
     brushColor += specular * glossFactor;
 
     float opacityThreshold = mix(0.2, 0.02, vDilution);
