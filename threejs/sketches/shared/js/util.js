@@ -16,9 +16,14 @@ export function smoothstep(edge0, edge1, x) {
 }
 
 export function random(min, max) {
-  if (max === undefined) {
+  if (min === undefined) {
+    min = 0;
+    max = 1;
+  } else if (max === undefined) {
     max = min;
     min = 0;
+  } else if (max < min) {
+    [min, max] = [max, min];
   }
   return Math.random() * (max - min) + min;
 }

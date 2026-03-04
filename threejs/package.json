@@ -8,6 +8,7 @@
   "dependencies": {
     "lil-gui": "^0.21.0",
     "spectral.js": "^3.0.0",
+    "stats.js": "^0.17.0",
     "three": "^0.180.0"
   },
   "devDependencies": {

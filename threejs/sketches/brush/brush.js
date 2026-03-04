@@ -69,7 +69,7 @@ const canvasMesh = new THREE.Mesh(canvasGeo, canvasMat);
 canvasMesh.position.z = -0.01;
 scene.add(canvasMesh);
 
-const numVerts = 250;
+const numVerts = 256;
 // Create geometry.
 const tempGeo = new THREE.PlaneGeometry(2.0, 2.0, numVerts, numVerts);
 const paintGeo = tempGeo;
@@ -215,11 +215,11 @@ window.addEventListener("mousemove", (event) => {
         const vertPos = getVertexPosition(i);
         const dist = vertPos.distanceTo(center);
         if (dist < brushSettings.radius) {
-          const rawDist = map(dist, 0.0, brushSettings.radius, 1.0, 0.0);
-          const distAmt = rawDist * rawDist * (3 - 2 * rawDist); // smoothstep
+          const distAmt = map(dist, 0.0, brushSettings.radius, 1.0, 0.0);
+          // const distAmt = rawDist * rawDist * (3 - 2 * rawDist); // smoothstep
           vertexIndicesInArea.push({
             index: i,
-            rawDist,
+            // rawDist,
             distAmt,
             extent: paintGeo.attributes.extent.array[i],
             isPainted: paintGeo.attributes.isPainted.array[i] > 0.0,
@@ -285,7 +285,7 @@ function blendColors(i, distAmt, baseExtent) {
 
   const wetness = 1 - THREE.MathUtils.clamp(dryness, 0, 1);
   const selectedExtent = paintGeo.attributes.extent.array[i];
-  const extentRatio = baseExtent > 0 ? selectedExtent / baseExtent : 10;
+  const extentRatio = baseExtent > 0 ? selectedExtent / baseExtent : 2;
   const extentMultiplier = Math.atan(Math.tan(0.5) * extentRatio);
 
   // const blendAmt = wetness * 0.7 * distAmt;
