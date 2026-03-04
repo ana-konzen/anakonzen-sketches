@@ -73,7 +73,7 @@ void main() {
     vec2 px = 1.0 / uResolution;
     float dx = uAxis == 0 ? px.x : px.y;
     float viscosity = 0.001;
-    float diffConst = 1.0;
+    float diffConst = 2.0;
     float blur_height = gaussianBlur(height, pow(dx, 2.0) / uDeltaTime * viscosity * wetness * diffConst, uAxis, true);
 
     // Advection
